@@ -1,54 +1,82 @@
 import { userService } from "./userService"
+import https from 'https';
+import axios, { AxiosRequestConfig, AxiosResponse, } from 'axios';
 
-const authHeader = (url: string): HeadersInit => {
+const baseUrl = 'https://localhost:7085';
+
+const authHeader = (url: string): string => {
   const user = userService.userValue;
   const isLoggedIn = user && user.authdata; //TODO: come back to change this to what it should be
   const isApiUrl = url.includes(`jessepecar.com`); //This means it is going to my api
   if (isLoggedIn && isApiUrl) {
-    return {
-      Authorization: `Bearer: ${user.authdata}`,
-    }
+    return `Bearer: ${user.token}`;
   } else {
-    return {}; //TODO: use an application token/guid to make sure this isn't being hit outside of the application
+    return ''; //TODO: use an application token/guid to make sure this isn't being hit outside of the application
   }
 }
 
-function handleResponse<TResponse>(response: Response): Promise<TResponse | never> {
-  return response.text().then(text => {
-    const data = text && JSON.parse(text);
-    if (!response.ok) {
-      const error = (data && data.message) || response.statusText; //Probably want to use the status text for most things
-      return Promise.reject(error);
-    }
-
-    return data;
-  });
+function handleResponse<TResponse>(response: AxiosResponse<TResponse, any>): TResponse | PromiseLike<TResponse> {
+  console.log('Response is being handled');
+  if (response.status !== 200) {
+    console.log('Returning a blank object');
+    return {} as TResponse;
+  }
+  console.log(JSON.stringify(response.data));
+  return response.data;
 }
 
-export async function get<TResponse>(url: string): Promise<TResponse> {
-  const requestOptions = {
+export async function get<TResponse>(url: string): Promise<TResponse | undefined> {
+  const requestOptions: AxiosRequestConfig = {
     method: 'GET',
-    headers: authHeader(url),
+    httpsAgent: new https.Agent({
+      rejectUnauthorized: false
+    }),
+    headers: {
+      'Authorization': authHeader(url)
+    }
   }
   
-  return await fetch(url, requestOptions).then(handleResponse<TResponse>);
+  var result = await axios.get<TResponse>(`${baseUrl}/${url}`, requestOptions).then(handleResponse<TResponse>).catch(err => {
+    console.error(err);
+    return undefined;
+  });
+
+  return result;  
 }
 
-export async function post<TResponse>(url: string, body: any): Promise<TResponse> {
+export async function post<TResponse>(url: string, body: any): Promise<TResponse | undefined> {
   const requestOptions = {
     method: 'POST',
-    headers: {'Content-Type': 'application/json',  ...authHeader(url)},
+    headers: {'Content-Type': 'application/json',  'Authorization': authHeader(url)},
     body: JSON.stringify(body),
+    httpsAgent: new https.Agent({
+      rejectUnauthorized: false
+    }),
   }
-  
-  return await fetch(url, requestOptions).then(handleResponse<TResponse>);
+
+  console.log('RequestOptions created');
+  var result = axios.post<TResponse>(`${baseUrl}/${url}`, body, requestOptions).then(handleResponse<TResponse>).catch(err => {
+    console.error(err);
+    return undefined;
+  });
+  console.log(result);
+  return result;
 }
 
-export async function  put<TResponse>(url: string, body: any): Promise<TResponse> {
+export async function put<TResponse>(url: string, body: any): Promise<TResponse | undefined> {
   const requestOptions = {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...authHeader(url) },
-      body: JSON.stringify(body)
+      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader(url) },
+      body: JSON.stringify(body),
+      httpsAgent: new https.Agent({
+      rejectUnauthorized: false
+    }),
   };
-  return await fetch(url, requestOptions).then(handleResponse<TResponse>);    
+
+  var result = await axios.put<TResponse>(`${baseUrl}/${url}`, body, requestOptions).then(handleResponse<TResponse>).catch(err => {
+    console.error(err);
+    return undefined;
+  });
+  
+  return result;   
 }

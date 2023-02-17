@@ -2,7 +2,7 @@ import { userService } from "@/services/userService";
 import { useRouter } from "next/router"
 import React from 'react';
 
-const RouteGuard: React.FC<{children: JSX.Element}> = (props) => {
+function RouteGuard({children} : {children?: React.ReactNode}) {
   const router = useRouter();
   const [authorized, setAuthorized] = React.useState(false);
 
@@ -18,10 +18,11 @@ const RouteGuard: React.FC<{children: JSX.Element}> = (props) => {
       router.events.off('routeChangeStart', hideContent);
       router.events.off('routeChangeComplete', authCheck);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const authCheck = (url: string) => {
-    const publicPaths = ['/Login'];
+    const publicPaths = ['/Login', '/CreateAccount'];
     const path = url.split('?')[0];
 
     if(!userService.userValue && !publicPaths.includes(path)) {
@@ -37,7 +38,15 @@ const RouteGuard: React.FC<{children: JSX.Element}> = (props) => {
     }
   }
   //Return page or got to login page
-  return (authorized ? props.children : <></>);
+  if (authorized) {
+    return (
+      <>
+        {children}
+      </>
+    );
+  } else {
+    return null;
+  }
 }
 
 
