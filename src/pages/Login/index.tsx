@@ -11,11 +11,11 @@ const Login = () => {
     const [error, setError] = React.useState('');
     const onLogin = async () => {
         setLoading(true);
-        console.log('Starting log in process');
+        
         const user = await userService.login(password, email);
-        console.log('Finished auth request');
+        
         if (user && user !== null) {
-            Router.push("/");
+            Router.push("/Home");
         } else {
             setPassword('');
             setError('Unable to log in');
@@ -72,12 +72,12 @@ const Login = () => {
                     />
                     <div className="submit-row">
                         <span className="submit">
-                            <Material.Button fullWidth variant='outlined' className="submit" onClick={onCreateAccount}>
+                            <Material.Button fullWidth disabled={loading} variant='outlined' className="submit" onClick={onCreateAccount}>
                                 Create an Account
                             </Material.Button>
                         </span>
                         <span className="submit">
-                            <Material.Button type='button' fullWidth disabled={!password || !email} variant='contained' color='primary' onClick={onLogin}>
+                            <Material.Button type='button' fullWidth disabled={!password || !email || loading} variant='contained' color='primary' onClick={onLogin}>
                                 Sign In
                             </Material.Button>
                         </span>

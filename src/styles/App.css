@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .page {
   margin-top: 8rem;
   display: flex;
@@ -16,3 +20,7 @@
   margin: 1rem 0.25rem 1rem 0.25rem;
 }
 
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+}

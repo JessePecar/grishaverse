@@ -22,10 +22,12 @@ function RouteGuard({children} : {children?: React.ReactNode}) {
   }, []);
 
   const authCheck = (url: string) => {
+    console.log("Checking the user's auth");
     const publicPaths = ['/Login', '/CreateAccount'];
     const path = url.split('?')[0];
 
     if(!userService.userValue && !publicPaths.includes(path)) {
+      console.log("Unauthorized access!");
       setAuthorized(false);
       router.push({
         pathname: '/Login',
@@ -34,6 +36,7 @@ function RouteGuard({children} : {children?: React.ReactNode}) {
         }
       });
     } else {
+      console.log("Authorized access");
       setAuthorized(true);
     }
   }
